@@ -1149,7 +1149,7 @@ function generateCandleGraph(container, data) {
       d3.selectAll(".stop".concat(i, ".textValue")).style('visibility', 'hidden');
       d3.selectAll(".axisText".concat(i)).attr("font-weight", 0);
     });
-    bars.append("text").text("".concat(data.delay[i])).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 16).style('visibility', 'hidden');
+    bars.append("text").text("".concat(data.delay[i])).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 14).style('visibility', 'hidden');
     previousDelay = data.delay[i];
   };
 
@@ -1219,7 +1219,7 @@ function generateBarGraph(container, data) {
       d3.selectAll(".stop".concat(i, ".textValue")).style('visibility', 'hidden');
       d3.selectAll(".axisText".concat(i)).attr("font-weight", 0);
     });
-    bars.append("text").text("".concat(data.amounts[i])).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 16).style('visibility', 'hidden');
+    bars.append("text").text("".concat(data.amounts[i])).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 14).style('visibility', 'hidden');
   };
 
   for (var i = 0; i < data.amounts.length; i++) {
@@ -9377,7 +9377,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63794" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49407" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
