@@ -365,7 +365,7 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToAr
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 // ===================== CONSTANTES  =====================
-var FONT_SIZE = 16;
+var FONT_SIZE = 14;
 var ID_VIZ = 'graph-heatmap';
 var MARGIN = {
   top: 150,
@@ -617,7 +617,7 @@ function updateRects(xScale, yScale, colorScale) {
 
 function drawXAxis(xScale) {
   // TODO : Draw X axis
-  d3.select(".x.axis").attr("transform", "translate(0, " + graphSize.height + " )").call(d3.axisBottom(xScale)).selectAll("text").attr("opacity", 0.0).style("font-size", "14px").attr("id", function (x) {
+  d3.select(".x.axis").attr("transform", "translate(0, " + graphSize.height + " )").call(d3.axisBottom(xScale)).selectAll("text").attr("opacity", 1.0).attr("font-size", "10px").attr('font-family', 'sans-serif').attr("id", function (x) {
     return x.replace(/[^a-zA-Z0-9]/g, '');
   });
 }
@@ -628,7 +628,7 @@ function drawXAxis(xScale) {
 
 function drawYAxis(yScale) {
   // TODO : Draw Y axis
-  d3.select(".y.axis").call(d3.axisLeft(yScale).tickSize(0)).selectAll("text").attr("opacity", 0.0).style("font-size", "14px").attr("id", function (x) {
+  d3.select(".y.axis").call(d3.axisLeft(yScale).tickSize(0)).selectAll("text").attr("opacity", 0.0).attr("font-size", "10px").attr('font-family', 'sans-serif').attr("id", function (x) {
     return "v" + x;
   });
 }
@@ -653,8 +653,8 @@ function setRectHandler(xScale, yScale) {
   d3.selectAll(" .rectangleChaleur").on("mouseenter", function (d) {
     rectSelected(this);
     selectTicks(d.nomArret, d.voyage);
-  }).on("mouseleave", function () {
-    unselectTicks();
+  }).on("mouseleave", function (d) {
+    unselectTicks(d.nomArret, d.voyage);
     rectUnselected(this);
   });
 }
@@ -683,17 +683,19 @@ function rectUnselected(element) {
 function selectTicks(arret, voyage) {
   //console.log(arret);
   //console.log(arret.replace(/[^a-zA-Z0-9]/g,''));
-  d3.select("#" + arret.replace(/[^a-zA-Z0-9]/g, '')).attr("font-weight", "bold").attr('opacity', 1.0);
-  d3.select("#v" + voyage).attr("font-weight", "bold").attr('opacity', 1.0);
+  d3.select("#" + arret.replace(/[^a-zA-Z0-9]/g, '')).attr("font-weight", 1000).attr("font-size", "10px").attr('opacity', 1.0);
+  d3.select("#v" + voyage).attr("font-weight", 1000).attr("font-size", "10px").attr('opacity', 1.0);
   ;
 }
 /**
  */
 
 
-function unselectTicks() {
+function unselectTicks(arret, voyage) {
   // TODO : Unselect the ticks
-  d3.select("#" + ID_VIZ).selectAll("text").attr("font-weight", "normal").attr('opacity', 0.0);
+  d3.select("#" + arret.replace(/[^a-zA-Z0-9]/g, '')).attr("font-weight", "normal").attr("font-size", "10px").attr('opacity', 1.0);
+  ;
+  d3.select("#v" + voyage).attr("font-weight", "normal").attr("font-size", "10px").attr('opacity', 0.0);
   ;
 } // ===================== LEGEND =====================
 
@@ -707,7 +709,7 @@ function unselectTicks() {
 
 function initGradient(colorScale) {
   var svg = d3.select(".main-svg");
-  svg.append('text').attr('x', (svgSize.width - MARGIN.right - MARGIN.left) / 2 + MARGIN.left).attr('y', MARGIN.top - FONT_SIZE * 2).attr('text-anchor', 'middle').text("Heatmap").style('font-size', FONT_SIZE);
+  svg.append('text').attr('x', (svgSize.width - MARGIN.right - MARGIN.left) / 2 + MARGIN.left).attr('y', MARGIN.top - FONT_SIZE * 2).attr('text-anchor', 'middle').text("Heatmap").attr('font-size', FONT_SIZE);
   var defs = svg.append("defs");
   var linearGradient = defs.append("linearGradient").attr("id", "gradient").attr("x1", "0%").attr("y1", "100%").attr("x2", "0%").attr("y2", "0%"); //.attr("opacity", OPACITY);
 
@@ -762,7 +764,7 @@ function draw(x, y, height, width, fill, colorScale) {
   axis.attr("transform", "translate(-10, " + y + ")");
   axis.selectAll("text").data(steps).enter().append("text").text(function (d) {
     return parseInt(d).toLocaleString();
-  }).attr("text-anchor", "end").attr("dominant-baseline", "middle").attr("font-size", "0.7em").attr("x", x).attr("y", function (d) {
+  }).attr("text-anchor", "end").attr("dominant-baseline", "middle").attr("font-size", "12px").attr('font-family', 'sans-serif').attr("x", x).attr("y", function (d) {
     return scale(maxValue) - scale(d);
   });
 } // ===================== TITLE =====================
@@ -955,7 +957,7 @@ function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-var FONT_SIZE = 16;
+var FONT_SIZE = 14;
 var BAR_FILL_COLOR = '#D5E8D4';
 var BAR_STROKE_COLOR = '#8DBA74';
 var BAR_FILL_COLOR_POSITIVE = '#D5E8D4';
@@ -1032,11 +1034,11 @@ function setLegend(container) {
   var legendWidth = container.node().getBoundingClientRect().width;
   var legendHeight = container.node().getBoundingClientRect().height;
   var svgLegend = container.append('svg').attr('width', legendWidth).attr('height', legendHeight).attr("style", "outline: thin solid black;");
-  svgLegend.append("text").attr('x', legendWidth / 2).attr('y', 25).attr('dominant-baselin', 'middle').attr('text-anchor', 'middle').text("Légende").attr('fill', '#black').attr('font-size', "1em");
+  svgLegend.append("text").attr('x', legendWidth / 2).attr('y', 25).attr('dominant-baselin', 'middle').attr('text-anchor', 'middle').text("Légende").attr('fill', '#black').attr('font-size', "14px");
   svgLegend.append('svg').append('rect').attr('transform', 'translate(' + 10 + ', 50)').attr('fill', BAR_FILL_COLOR_NEGATIVE).attr('stroke', BAR_STROKE_COLOR_NEGATIVE).attr('width', 25).attr('height', 25);
-  svgLegend.append("text").attr('transform', 'translate(' + 40 + ', 65)').text("Gain du retard").attr('fill', '#black').attr('font-size', "1em");
+  svgLegend.append("text").attr('transform', 'translate(' + 40 + ', 65)').text("Gain du retard").attr('fill', '#black').attr('font-size', "14px");
   svgLegend.append('svg').append('rect').attr('transform', 'translate(' + 10 + ', 85)').attr('fill', BAR_FILL_COLOR_POSITIVE).attr('stroke', BAR_STROKE_COLOR_POSITIVE).attr('width', 25).attr('height', 25);
-  svgLegend.append("text").attr('transform', 'translate(' + 40 + ', 100)').text("Perte du retard").attr('fill', '#black').attr('font-size', "1em");
+  svgLegend.append("text").attr('transform', 'translate(' + 40 + ', 100)').text("Perte du retard").attr('fill', '#black').attr('font-size', "14px");
 }
 /**
  * @param {Selection} container The div to generate the graph in
@@ -1106,9 +1108,9 @@ function generateCandleGraph(container, data) {
 
   xAxis.append('path').attr('d', d3.line()([[margin.left, yScale(5)], [width - margin.left, yScale(5)]])).attr('stroke', 'black').style("stroke-dasharray", "3,3"); //Add right labels
 
-  svg.append("text").attr('x', width - margin.left + 10).attr('y', yScale(0.5 * (Math.max.apply(Math, _toConsumableArray(data.delay)) - 5) + 5)).text('Retard').attr('fill', '#D7625D').attr('font-size', 16);
-  svg.append("text").text('Ponctuel').attr('x', width - margin.left + 10).attr('y', yScale(2.5)).attr('fill', '#577845').attr('font-size', 16);
-  svg.append("text").attr('x', width - margin.left + 10).attr('y', yScale(0.5 * Math.min.apply(Math, _toConsumableArray(data.delay)))).text('Avance').attr('fill', '#FFD966').attr('font-size', 16); // Bars
+  svg.append("text").attr('x', width - margin.left + 10).attr('y', yScale(0.5 * (Math.max.apply(Math, _toConsumableArray(data.delay)) - 5) + 5)).text('Retard').attr('fill', '#D7625D').attr('font-size', FONT_SIZE);
+  svg.append("text").text('Ponctuel').attr('x', width - margin.left + 10).attr('y', yScale(2.5)).attr('fill', '#577845').attr('font-size', FONT_SIZE);
+  svg.append("text").attr('x', width - margin.left + 10).attr('y', yScale(0.5 * Math.min.apply(Math, _toConsumableArray(data.delay)))).text('Avance').attr('fill', '#FFD966').attr('font-size', FONT_SIZE); // Bars
 
   var lines = svg.append('g').attr('id', 'vertLine');
   var bars = svg.append('g').attr('id', 'bars');
@@ -9375,7 +9377,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63152" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63794" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

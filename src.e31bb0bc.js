@@ -589,7 +589,7 @@ function generateDelayGraph(container, data, vizData) {
 
   svg.select('#y-axis > .label').text('Minute').attr('fill', '#898989'); // Legend
 
-  var legend = svg.insert('g', '#x-axis');
+  var legend = svg.insert('g', '#x-axis').style("font-size", "12px");
   var middleY = (HEIGHT - MARGIN.top - MARGIN.bottom) / 2 + MARGIN.top;
   var squareWidth = FONT_SIZE * 2 / 3;
   var paddingX = FONT_SIZE * 2;
@@ -730,7 +730,7 @@ function generateGroupedQuantileGraph(container, data) {
 
   for (var i = 0; i < data.directions.length; i++) {
     var x = directionsScale(data.directions[i]);
-    xAxis.append('text').attr('text-anchor', 'end').attr('transform', "translate(".concat(x, ", ").concat(directionValuesY, ") rotate(").concat(DIRECTIONS_ANGLE, ")")).text(data.directions[i]).style('font-size', FONT_SIZE).attr('font-family', 'sans-serif').attr('class', "direction".concat(i, " label"));
+    xAxis.append('text').attr('text-anchor', 'end').attr('transform', "translate(".concat(x, ", ").concat(directionValuesY, ") rotate(").concat(DIRECTIONS_ANGLE, ")")).text(data.directions[i]).style('font-size', "12px").attr('font-family', 'sans-serif').attr('class', "direction".concat(i, " label"));
   } // Draw labels
 
 
@@ -829,11 +829,11 @@ function generateGroupedQuantileGraph(container, data) {
     bars.append('rect').attr('width', BAR_WIDTH).attr('x', directionsScale(data.directions[_i3]) - BAR_WIDTH / 2).attr('height', dataScale.range()[0] - dataScale.range()[1] + FONT_SIZE).attr('y', MARGIN.top).attr('fill', 'transparent') // Highlight direction
     .on('mouseover', function () {
       d3.selectAll(".direction".concat(_i3)).attr('stroke-width', QUANTILE_STROKE_WIDTH * 2);
-      d3.selectAll(".direction".concat(_i3, ".label")).style('font-size', FONT_SIZE * 1.2);
+      d3.selectAll(".direction".concat(_i3, ".label")).attr("font-weight", 1000);
       d3.selectAll(".direction".concat(_i3, ".quantile")).style('visibility', 'visible'); // Unhighlight direction
     }).on('mouseout', function () {
       d3.selectAll(".direction".concat(_i3)).attr('stroke-width', QUANTILE_STROKE_WIDTH);
-      d3.selectAll(".direction".concat(_i3, ".label")).style('font-size', FONT_SIZE);
+      d3.selectAll(".direction".concat(_i3, ".label")).attr("font-weight", 0);
       d3.selectAll(".direction".concat(_i3, ".quantile")).style('visibility', 'hidden');
     });
   };
@@ -1074,7 +1074,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63152" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63794" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
