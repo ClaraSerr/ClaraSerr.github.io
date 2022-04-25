@@ -391,23 +391,27 @@ function drawHeatmap(vizData, ligne, girouette) {
 
 function flatten_Data(dataStructurees, nom_moy, nom_liste) {
   var flattenData = [];
-  dataStructurees.voyages.forEach(function (v) {
-    var numVoyage = v.voyage;
-    v.arrets.forEach(function (a) {
-      var codeArret = a.codeArret;
-      var nomArret = a.nomArret;
-      var moyenne = a[nom_moy];
-      var liste = Array.from(a[nom_liste].values());
-      flattenData.push({
-        voyage: numVoyage,
-        codeArret: codeArret,
-        nomArret: nomArret,
-        sequenceArret: a.sequenceArret,
-        moyenne: moyenne,
-        liste: liste
+
+  if (typeof dataStructurees !== 'undefined') {
+    dataStructurees.voyages.forEach(function (v) {
+      var numVoyage = v.voyage;
+      v.arrets.forEach(function (a) {
+        var codeArret = a.codeArret;
+        var nomArret = a.nomArret;
+        var moyenne = a[nom_moy];
+        var liste = Array.from(a[nom_liste].values());
+        flattenData.push({
+          voyage: numVoyage,
+          codeArret: codeArret,
+          nomArret: nomArret,
+          sequenceArret: a.sequenceArret,
+          moyenne: moyenne,
+          liste: liste
+        });
       });
     });
-  });
+  }
+
   return flattenData;
 }
 
@@ -9570,7 +9574,11 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
        });*/
 
       direction.addEventListener("DOMSubtreeModified", function () {
-        heatmap.drawHeatmap(vizData, parseInt(line.value), direction.value);
+        if (line.value == "9") {
+          heatmap.drawHeatmap(vizData, parseInt(line.value), "Lafontaine Via Gare  Saint-Jérôme");
+        } else {
+          heatmap.drawHeatmap(vizData, parseInt(line.value), "Gare Sainte-Thérèse");
+        }
       });
       direction.addEventListener("change", function () {
         heatmap.drawHeatmap(vizData, parseInt(line.value), direction.value);
@@ -9610,7 +9618,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63243" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62806" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
