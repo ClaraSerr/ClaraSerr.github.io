@@ -329,7 +329,7 @@ var graphSize; /// /////////////////////////////////////////////////////////////
 
 function drawHeatmap(vizData, ligne, girouette) {
   //d3.select("#heatmap-svg").selectAll().remove()
-  document.getElementById('heatmap-svg').innerHTML = '';
+  document.getElementById("heatmap-svg-container").firstElementChild.innerHTML = '';
   HEIGHT = document.getElementById('heatmap-svg-container').getBoundingClientRect().height;
   var indicateur = document.getElementById("indicateur").value;
   var moyenne, liste, nomIndicateur;
@@ -9618,7 +9618,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63031" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51055" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
