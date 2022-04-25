@@ -126,15 +126,10 @@ Object.defineProperty(exports, "__esModule", {
 exports.generateMapG = generateMapG;
 exports.generateMarkerG = generateMarkerG;
 exports.setCanvasSize = setCanvasSize;
-exports.appendGraphLabels = appendGraphLabels;
-exports.initPanelDiv = initPanelDiv;
-exports.getSimulation = getSimulation;
-exports.simulate = simulate;
-exports.getProjection = getProjection;
-exports.getPath = getPath;
 exports.getClosestStep = getClosestStep;
 exports.getSteps = getSteps;
 exports.getQuantiles = getQuantiles;
+exports.getWeekNumber = getWeekNumber;
 
 /**
  * Generates the SVG element g which will contain the map base.
@@ -168,87 +163,6 @@ function generateMarkerG(width, height) {
 
 function setCanvasSize(width, height) {
   d3.select('#map').select('svg').attr('width', width).attr('height', height);
-}
-/**
- * Appends the labels for the graph.
- *
- * @param {*} g The d3 Selection of the graph's g SVG element
- */
-
-
-function appendGraphLabels(g) {
-  /* g.append('text')
-     .text('Achalandage et ponctualité des lignes de bus 9 et 22 de la couronne Nord de Montréal')
-     .attr('class', 'title')
-     .attr('fill', '#000000')
-     .attr('font-family', 'myriad-pro')
-     .attr('font-size', 28)
-     .attr('transform', 'translate(50, 50)')
-  
-   g.append('text')
-     .text('Sous-titre')
-     .attr('class', 'title')
-     .attr('fill', '#000000')
-     .attr('font-family', 'myriad-pro')
-     .attr('font-size', 18)
-     .attr('transform', 'translate(50, 85)') */
-}
-/**
- * Initializes the div which will contain the information panel.
- */
-
-
-function initPanelDiv() {
-  d3.select('.graph').append('div').attr('id', 'panel').style('width', '215px').style('border', '1px solid black').style('padding', '10px').style('visibility', 'hidden');
-}
-/**
- * Initializes the simulation used to place the circles
- *
- * @param {object} data The data to be displayed
- * @returns {*} The generated simulation
- */
-
-
-function getSimulation(data) {
-  return d3.forceSimulation(data.features).alphaDecay(0).velocityDecay(0.75).force('collision', d3.forceCollide(5).strength(1));
-}
-/**
- * Update the (x, y) position of the circles'
- * centers on each tick of the simulation.
- *
- * @param {*} simulation The simulation used to position the cirles.
- */
-
-
-function simulate(simulation) {
-  simulation.on('tick', function () {
-    d3.selectAll('.marker').attr('cx', function (d) {
-      return d.x;
-    }).attr('cy', function (d) {
-      return d.y;
-    });
-  });
-}
-/**
- * Sets up the projection to be used.
- *
- * @returns {*} The projection to use to trace the map elements
- */
-
-
-function getProjection() {
-  return d3.geoMercator().center([-73.708879, 45.579611]).scale(70000);
-}
-/**
- * Sets up the path to be used.
- *
- * @param {*} projection The projection used to trace the map elements
- * @returns {*} The path to use to trace the map elements
- */
-
-
-function getPath(projection) {
-  return d3.geoPath().projection(projection);
 }
 /**
  * @param {number} nSteps The ideal number of steps
@@ -318,6 +232,25 @@ function getQuantiles(array) {
   var quantiles = [array[0], d3.quantile(array, 0.25), d3.median(array), d3.quantile(array, 0.75), array[array.length - 1]];
   return quantiles;
 }
+/**
+ * @param {Date} d date
+ * @returns {number} weekNo
+ */
+
+
+function getWeekNumber(d) {
+  // Copy date so don't modify original
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); // Set to nearest Thursday: current date + 4 - current day number
+  // Make Sunday's day number 7
+
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); // Get first day of year
+
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); // Calculate full weeks to nearest Thursday
+
+  var weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7); // Return array of year and week number
+
+  return [d.getUTCFullYear(), weekNo];
+}
 },{}],"scripts/heatmap.js":[function(require,module,exports) {
 "use strict";
 
@@ -352,6 +285,8 @@ function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return 
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -368,22 +303,22 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 var FONT_SIZE = 14;
 var ID_VIZ = 'graph-heatmap';
 var MARGIN = {
-  top: 150,
-  right: 250,
-  bottom: 300,
-  left: 200
+  top: 45,
+  right: 20,
+  bottom: 210,
+  left: 70
 };
-var HEIGHT = 1000;
+var HEIGHT = 0;
 var ID_X_AXIS = 'x axis';
 var ID_Y_AXIS = 'y axis';
 var OPACITY = 0.75;
-var VERT = "#00B800";
-var VERT_NEUTRE = "#E6F9E6";
-var ROUGE = "#FF0000";
-var BLANC = "#FFFFFF";
+var VERT = '#00B800';
+var VERT_NEUTRE = '#E6F9E6';
+var ROUGE = '#FF0000';
+var BLANC = '#FFFFFF';
 var bounds;
 var svgSize;
-var graphSize; //////////////////////////////////////////////////////////////////
+var graphSize; /// ///////////////////////////////////////////////////////////////
 
 /**
  * @param vizData       // les données
@@ -392,24 +327,29 @@ var graphSize; /////////////////////////////////////////////////////////////////
  * @param indicateur    // donnee a visualisaer, 1 choix pamis [Ponctualite, Achalandage, IndiceMixte]
  */
 
-function drawHeatmap(vizData, ligne, girouette, indicateur) {
-  indicateur = 'Ponctualite';
-  var moyenne, liste;
+function drawHeatmap(vizData, ligne, girouette) {
+  document.getElementById('heatmap-svg').innerHTML = '';
+  HEIGHT = document.getElementById('heatmap-svg-container').getBoundingClientRect().height;
+  var indicateur = document.getElementById("indicateur").value;
+  var moyenne, liste, nomIndicateur;
 
   switch (indicateur) {
     case 'Ponctualite':
       moyenne = 'moyMinutesEcart';
       liste = 'minutesEcart';
+      nomIndicateur = 'de la ponctualité';
       break;
 
     case 'Achalandage':
       moyenne = 'moyNClients';
       liste = 'nClients';
+      nomIndicateur = "de l'achalandage";
       break;
 
     case 'IndiceMixte':
       moyenne = 'moyMinutesEcartClient';
       liste = 'minutesEcartClient';
+      nomIndicateur = "de l'indice combo";
       break;
   }
 
@@ -426,26 +366,17 @@ function drawHeatmap(vizData, ligne, girouette, indicateur) {
   appendAxes(g);
   var Xscale = createXScale(flattenData);
   var Yscale = createYScale(dataUtiles);
-  var colorScale = createColorScale(flattenData); //console.log(Xscale)
-
+  var colorScale = createColorScale(flattenData);
   appendRects(flattenData);
   updateRects(Xscale, Yscale, colorScale);
   drawXAxis(Xscale);
   drawYAxis(Yscale);
   rotateXTicks();
   setRectHandler(Xscale, Yscale);
-  initGradient(colorScale);
+  initGradient(colorScale, nomIndicateur);
   initLegendBar();
   initLegendAxis();
   draw(MARGIN.left / 2, MARGIN.top + 5, graphSize.height - 10, 15, 'url(#gradient)', colorScale);
-  /*
-    for (var v = 0; v < vizData[posLigne].girouettes[posGirouette].voyages.length; v++) {
-      for (var a = 0; a < vizData[posLigne].girouettes[posGirouette].voyages[v].arrets.length; a++) {
-        var valueSquare = vizData[posLigne].girouettes[posGirouette].voyages[v].arrets[a][indicateur]
-        //console.log(valueSquare)
-      }
-    }
-    */
 }
 
 ; // ===================== PROCESS DATA =====================
@@ -454,7 +385,7 @@ function drawHeatmap(vizData, ligne, girouette, indicateur) {
  * @param {*} dataStructurees donnees structures issues du preprocessing, pour une ligne et une girouette
  * @param {string} nom_moy
  * @param {string} nom_liste
-* retourne une liste {object[]}, ou chaque element sont les donnes pour un arret et un voyage
+ * retourne une liste {object[]}, ou chaque element sont les donnes pour un arret et un voyage
  */
 
 function flatten_Data(dataStructurees, nom_moy, nom_liste) {
@@ -465,7 +396,7 @@ function flatten_Data(dataStructurees, nom_moy, nom_liste) {
       var codeArret = a.codeArret;
       var nomArret = a.nomArret;
       var moyenne = a[nom_moy];
-      var liste = a[nom_liste];
+      var liste = Array.from(a[nom_liste].values());
       flattenData.push({
         voyage: numVoyage,
         codeArret: codeArret,
@@ -480,7 +411,7 @@ function flatten_Data(dataStructurees, nom_moy, nom_liste) {
 }
 
 ; // ===================== SETUP =====================
-//CANVAS
+// CANVAS
 
 /**
  * Generates the SVG element g which will contain the data visualisation.
@@ -489,7 +420,7 @@ function flatten_Data(dataStructurees, nom_moy, nom_liste) {
  */
 
 function generateG() {
-  return d3.select('.graph').select('.main-svg').append('g').attr('id', ID_VIZ).attr('transform', 'translate(' + MARGIN.left + ',' + MARGIN.top + ')');
+  return d3.select('#heatmap-svg-container').select('#heatmap-svg').append('g').attr('id', ID_VIZ).attr('transform', 'translate(' + MARGIN.left + ',' + MARGIN.top + ')');
 }
 /**
  *   This function handles the graph's sizing.
@@ -497,8 +428,7 @@ function generateG() {
 
 
 function setSizing() {
-  console.log(d3.select('.graph'));
-  bounds = d3.select('.graph').node().getBoundingClientRect();
+  bounds = d3.select('#heatmap-svg-container').node().getBoundingClientRect();
   svgSize = {
     width: bounds.width,
     height: HEIGHT
@@ -508,19 +438,20 @@ function setSizing() {
     height: svgSize.height - MARGIN.bottom - MARGIN.top
   };
   helper.setCanvasSize(svgSize.width, svgSize.height);
-} //AXIS
+  document.getElementById('heatmap-tooltip-aligner').style.marginTop = MARGIN.top + 'px';
+} // AXIS
 
 /**
  * Appends an SVG g element which will contain the axes.
  *
-* @param {*} g The d3 Selection of the graph's g SVG element
-*/
+ * @param {*} g The d3 Selection of the graph's g SVG element
+ */
 
 
 function appendAxes(g) {
   g.append('g').attr('class', ID_X_AXIS);
   g.append('g').attr('class', ID_Y_AXIS);
-} //SCALES (x, y, color Negative, color positive)
+} // SCALES (x, y, color Negative, color positive)
 
 /**
  * @param {*} flattenData donnees structures issues du preprocessing, pour une ligne et une girouette
@@ -530,7 +461,7 @@ function appendAxes(g) {
 
 function createXScale(flattenData) {
   // obtenir tous les arrets dans l'ordre
-  var xScale = d3.scaleBand().padding(0.05);
+  var xScale = d3.scaleBand();
   var map_arret = d3.map();
   flattenData.forEach(function (a) {
     return map_arret.set(a.sequenceArret, a.nomArret);
@@ -555,12 +486,11 @@ function createXScale(flattenData) {
  */
 
 function createYScale(dataStructurees) {
-  var yScale = d3.scaleBand().padding(0.05);
   var voyages = dataStructurees.voyages.map(function (v) {
     return v.voyage;
   });
   var dom = d3.extent(voyages);
-  yScale.domain(d3.range(dom[0], dom[1])).range([0, graphSize.height]);
+  var yScale = d3.scaleBand().domain(d3.range(dom[0], dom[1])).range([0, graphSize.height]);
   return yScale;
 }
 
@@ -569,6 +499,7 @@ function createYScale(dataStructurees) {
  * @param {object[]} dataFlatten donnees applaties issues du preprocessing additionnel, pour une ligne et une girouette
  * @param indicateur    // donnee a visualisaer, 1 choix pamis [Ponctualite, Achalandage, IndiceMixte]
  * retourne l'echelle des couleurs des donnes vizualisees, en fonction du type de donnees
+ * @param flattenData
  */
 
 function createColorScale(flattenData) {
@@ -587,7 +518,7 @@ function createColorScale(flattenData) {
 
 function appendRects(data) {
   // TODO : Append SVG rect elements
-  d3.select("#" + ID_VIZ).append("g").selectAll("g").data(data).enter().append("g").append("rect");
+  d3.select('#' + ID_VIZ).append('g').selectAll('g').data(data).enter().append('g').append('rect');
 }
 /**
  * After the rectangles have been appended, this function dictates
@@ -601,13 +532,29 @@ function appendRects(data) {
 
 function updateRects(xScale, yScale, colorScale) {
   // TODO : Set position, size and fill of rectangles according to bound data
-  d3.select("#" + ID_VIZ).selectAll("rect").attr("x", function (d) {
-    return xScale(d.nomArret);
-  }).attr("y", function (d) {
-    return yScale(d.voyage);
-  }).attr("width", xScale.bandwidth()).attr("height", yScale.bandwidth()).attr("fill", function (d) {
+  d3.select('#' + ID_VIZ).selectAll('rect').attr('x', function (d) {
+    if (typeof xScale(d.nomArret) !== 'undefined') {
+      return xScale(d.nomArret);
+    } else {
+      return -1;
+    }
+  }).attr('y', function (d) {
+    if (typeof xScale(d.nomArret) !== 'undefined') {
+      return yScale(d.voyage);
+    } else {
+      return -1;
+    }
+  }).attr('width', xScale.bandwidth()).attr('height', yScale.bandwidth() * 2).attr('fill', function (d) {
     return colorScale(d.moyenne);
-  }).attr("opacity", OPACITY).attr("class", "rectangleChaleur");
+  }).attr('opacity', function (d) {
+    if (typeof xScale(d.nomArret) !== 'undefined') {
+      return OPACITY;
+    } else {
+      return 0;
+    }
+
+    ;
+  }).attr('class', 'rectangleChaleur');
 } // ===================== DRAW AXIS =====================
 
 /**
@@ -617,7 +564,7 @@ function updateRects(xScale, yScale, colorScale) {
 
 function drawXAxis(xScale) {
   // TODO : Draw X axis
-  d3.select(".x.axis").attr("transform", "translate(0, " + graphSize.height + " )").call(d3.axisBottom(xScale)).selectAll("text").attr("opacity", 1.0).attr("font-size", "10px").attr('font-family', 'sans-serif').attr("id", function (x) {
+  d3.select('.x.axis').attr('transform', 'translate(0, ' + graphSize.height + ' )').call(d3.axisBottom(xScale)).selectAll('text').attr('opacity', 1.0).attr('font-size', '10px').attr('font-family', 'sans-serif').attr('id', function (x) {
     return x.replace(/[^a-zA-Z0-9]/g, '');
   });
 }
@@ -628,8 +575,8 @@ function drawXAxis(xScale) {
 
 function drawYAxis(yScale) {
   // TODO : Draw Y axis
-  d3.select(".y.axis").call(d3.axisLeft(yScale).tickSize(0)).selectAll("text").attr("opacity", 0.0).attr("font-size", "10px").attr('font-family', 'sans-serif').attr("id", function (x) {
-    return "v" + x;
+  d3.select('.y.axis').call(d3.axisLeft(yScale).tickSize(0)).selectAll('text').attr('opacity', 0.0).attr('font-size', '10px').attr('font-family', 'sans-serif').attr('id', function (x) {
+    return 'v' + x;
   });
 }
 /**
@@ -639,7 +586,7 @@ function drawYAxis(yScale) {
 
 function rotateXTicks() {
   // TODO : Rotate X axis' ticks
-  d3.select(".x.axis").selectAll("text").attr("transform", "rotate(-45)").attr('text-anchor', 'end');
+  d3.select('.x.axis').selectAll('text').attr('transform', 'rotate(-45)').attr('text-anchor', 'end');
 } // ===================== HOVERING FEATURE =====================
 
 /**
@@ -650,21 +597,21 @@ function rotateXTicks() {
 
 
 function setRectHandler(xScale, yScale) {
-  d3.selectAll(" .rectangleChaleur").on("mouseenter", function (d) {
+  d3.selectAll(' .rectangleChaleur').on('mouseenter', function (d) {
     rectSelected(this);
-    selectTicks(d.nomArret, d.voyage);
-  }).on("mouseleave", function (d) {
+    selectTicks(d.nomArret, d.voyage, d.codeArret, d.moyenne, d.liste);
+  }).on('mouseleave', function (d) {
     unselectTicks(d.nomArret, d.voyage);
     rectUnselected(this);
   });
 }
 /**
  * @param {*} element The selection of rectangles in "selected" state
-*/
+ */
 
 
 function rectSelected(element) {
-  d3.select(element).attr("opacity", 1.0);
+  d3.select(element).attr('opacity', 1.0);
 }
 /**
  * @param {*} element The selection of rectangles in "selected" state
@@ -672,31 +619,32 @@ function rectSelected(element) {
 
 
 function rectUnselected(element) {
-  d3.select(element).attr("opacity", OPACITY); //d3.select(element.parentNode).select("text").remove();
+  d3.select(element).attr('opacity', OPACITY); // d3.select(element.parentNode).select("text").remove();
 }
 /**
  * @param {string} arret
- * @param {number} voyage 
+ * @param {number} voyage
  */
 
 
-function selectTicks(arret, voyage) {
-  //console.log(arret);
-  //console.log(arret.replace(/[^a-zA-Z0-9]/g,''));
-  d3.select("#" + arret.replace(/[^a-zA-Z0-9]/g, '')).attr("font-weight", 1000).attr("font-size", "10px").attr('opacity', 1.0);
-  d3.select("#v" + voyage).attr("font-weight", 1000).attr("font-size", "10px").attr('opacity', 1.0);
-  ;
+function selectTicks(arret, voyage, numArret, moyenne, listeData) {
+  var selection = d3.select('#' + arret.replace(/[^a-zA-Z0-9]/g, ''));
+  selection.attr('font-weight', 1000).attr('font-size', '10px').attr('opacity', 1.0);
+  d3.select('#v' + voyage).attr('font-weight', 1000).attr('font-size', '10px').attr('opacity', 1.0);
+  setTooltip(arret, voyage, numArret, moyenne, listeData);
+  d3.select("#heatmap-tooltip-aligner").style('visibility', 'visible');
 }
 /**
+ * @param arret
+ * @param voyage
  */
 
 
 function unselectTicks(arret, voyage) {
   // TODO : Unselect the ticks
-  d3.select("#" + arret.replace(/[^a-zA-Z0-9]/g, '')).attr("font-weight", "normal").attr("font-size", "10px").attr('opacity', 1.0);
-  ;
-  d3.select("#v" + voyage).attr("font-weight", "normal").attr("font-size", "10px").attr('opacity', 0.0);
-  ;
+  d3.select('#' + arret.replace(/[^a-zA-Z0-9]/g, '')).attr('font-weight', 'normal').attr('font-size', '10px').attr('opacity', 1.0);
+  d3.select('#v' + voyage).attr('font-weight', 'normal').attr('font-size', '10px').attr('opacity', 0.0);
+  d3.select("#heatmap-tooltip-aligner").style('visibility', 'hidden');
 } // ===================== LEGEND =====================
 
 /**
@@ -704,20 +652,21 @@ function unselectTicks(arret, voyage) {
  * given colorScale.
  *
  * @param {*} colorScale The color scale to use
+ * @param {String} nomIndicateur Nom de l'indicateur visualisé
  */
 
 
-function initGradient(colorScale) {
-  var svg = d3.select(".main-svg");
-  svg.append('text').attr('x', (svgSize.width - MARGIN.right - MARGIN.left) / 2 + MARGIN.left).attr('y', MARGIN.top - FONT_SIZE * 2).attr('text-anchor', 'middle').text("Heatmap").attr('font-size', FONT_SIZE);
-  var defs = svg.append("defs");
-  var linearGradient = defs.append("linearGradient").attr("id", "gradient").attr("x1", "0%").attr("y1", "100%").attr("x2", "0%").attr("y2", "0%"); //.attr("opacity", OPACITY);
+function initGradient(colorScale, nomIndicateur) {
+  var svg = d3.select('#heatmap-svg');
+  svg.append('text').attr('x', (svgSize.width - MARGIN.right - MARGIN.left) / 2 + MARGIN.left).attr('y', MARGIN.top - FONT_SIZE * 2).attr('text-anchor', 'middle').text('Carte de chaleur ' + nomIndicateur).attr('font-size', FONT_SIZE);
+  var defs = svg.append('defs');
+  var linearGradient = defs.append('linearGradient').attr('id', 'gradient').attr('x1', '0%').attr('y1', '100%').attr('x2', '0%').attr('y2', '0%'); // .attr("opacity", OPACITY);
 
   var csd = colorScale.domain();
   var range_csd = csd[csd.length - 1] - csd[0];
-  linearGradient.selectAll("stop").data(csd).enter().append("stop").attr("offset", function (d) {
-    return " " + (d - csd[0]) / range_csd * 100 + "%";
-  }).attr("stop-color", function (d) {
+  linearGradient.selectAll('stop').data(csd).enter().append('stop').attr('offset', function (d) {
+    return ' ' + (d - csd[0]) / range_csd * 100 + '%';
+  }).attr('stop-color', function (d) {
     return colorScale(d);
   });
 }
@@ -727,8 +676,8 @@ function initGradient(colorScale) {
 
 
 function initLegendBar() {
-  var svg = d3.select(".main-svg");
-  svg.append("rect").attr("class", "legend bar").attr("opacity", OPACITY);
+  var svg = d3.select('#heatmap-svg');
+  svg.append('rect').attr('class', 'legend bar').attr('opacity', OPACITY);
 }
 /**
  *  Initializes the group for the legend's axis.
@@ -736,8 +685,8 @@ function initLegendBar() {
 
 
 function initLegendAxis() {
-  var svg = d3.select(".main-svg");
-  svg.append("g").attr("class", "legend axis");
+  var svg = d3.select('#heatmap-svg');
+  svg.append('g').attr('class', 'legend axis');
 }
 /**
  * Draws the legend to the left of the graphic.
@@ -753,21 +702,88 @@ function initLegendAxis() {
 
 function draw(x, y, height, width, fill, colorScale) {
   var csd = colorScale.domain();
-  d3.select(".legend.bar").attr("x", x).attr("y", y).attr("height", height).attr("width", width).attr("fill", fill);
-  var step = 5;
+  d3.select('.legend.bar').attr('x', x).attr('y', y).attr('height', height).attr('width', width).attr('fill', fill);
   var maxValue = csd[csd.length - 1];
   var minValue = csd[0];
+  var step = Math.round((maxValue - minValue) / 16);
   var steps = d3.range(minValue, maxValue, step);
-  console.log(steps);
   var scale = d3.scaleLinear().domain([csd[0], csd[csd.length - 1]]).range([0, height]);
-  var axis = d3.select(".legend.axis");
-  axis.attr("transform", "translate(-10, " + y + ")");
-  axis.selectAll("text").data(steps).enter().append("text").text(function (d) {
+  var axis = d3.select('.legend.axis');
+  axis.attr('transform', 'translate(-10, ' + y + ')');
+  axis.selectAll('text').data(steps).enter().append('text').text(function (d) {
     return parseInt(d).toLocaleString();
-  }).attr("text-anchor", "end").attr("dominant-baseline", "middle").attr("font-size", "12px").attr('font-family', 'sans-serif').attr("x", x).attr("y", function (d) {
+  }).attr('text-anchor', 'end').attr('dominant-baseline', 'middle').attr('font-size', '12px').attr('font-family', 'sans-serif').attr('x', x).attr('y', function (d) {
     return scale(maxValue) - scale(d);
   });
-} // ===================== TITLE =====================
+} // ===================== TOOLTIP =====================
+
+
+function setTooltip(arret, voyage, numArret, moyenne, listeData) {
+  var tooltip = document.getElementById('heatmap-tooltip-text');
+  tooltip.innerHTML = "Arr\xEAt: ".concat(arret, "<br> \n                       Code de l'arret : ").concat(numArret, "<br>\n                       Voyage: ").concat(voyage, "<br>\n                       Moyenne: ").concat(moyenne.toPrecision(3), "<br>\n                       ");
+  updateHistogram(listeData);
+  d3.select("#heatmap-tooltip-aligner").style('visibility', 'hidden');
+}
+
+function updateHistogram(listeData) {
+  var margin = {
+    top: 10,
+    right: 10,
+    bottom: 30,
+    left: 30
+  },
+      width = 160 - margin.left - margin.right,
+      height = 120 - margin.top - margin.bottom;
+  d3.select("#heatmap-tooltip-histogram").select("svg").remove();
+  var svg = d3.select("#heatmap-tooltip-histogram").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var max = Math.max(listeData);
+  var min = Math.min(listeData);
+  var x_scale = d3.scaleBand().domain(listeData.sort(function (a, b) {
+    return a - b;
+  })).range([0, width]).padding(0.3);
+  svg.append("g").attr("transform", "translate(0," + height + ")").call(d3.axisBottom().scale(x_scale));
+  var counts = {};
+
+  var _iterator = _createForOfIteratorHelper(listeData),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var num = _step.value;
+      counts[num] = counts[num] ? counts[num] + 1 : 1;
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  var keys = Object.keys(counts);
+  var L = [];
+
+  for (var _i = 0, _keys = keys; _i < _keys.length; _i++) {
+    var k = _keys[_i];
+    var obj = {};
+    obj["x"] = parseInt(k);
+    obj["y"] = counts[k];
+    L.push(obj);
+  }
+
+  var M = L.map(function (a) {
+    return parseInt(a["y"]);
+  });
+  var y_scale = d3.scaleLinear().domain([0, Math.max.apply(Math, _toConsumableArray(M))]).range([height, 0]);
+  svg.append("g").call(d3.axisLeft(y_scale));
+  svg.selectAll("rect").data(L).enter().append("rect").attr("x", function (d) {
+    return x_scale(d.x);
+  }).attr("transform", function (d) {
+    return "translate(" + 0 + "," + y_scale(d.y) + ")";
+  }).attr("width", function (d) {
+    return x_scale.bandwidth();
+  }).attr("height", function (d) {
+    return height - y_scale(d.y);
+  }).style("fill", "#5b5b5b");
+}
 },{"./helper.js":"scripts/helper.js"}],"scripts/preprocess.js":[function(require,module,exports) {
 "use strict";
 
@@ -776,6 +792,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.addDayType = addDayType;
 exports.aggregateData = aggregateData;
+exports.aggregateDataForViz3 = aggregateDataForViz3;
 
 // INF8808 - Exo
 //
@@ -876,52 +893,151 @@ function aggregateData(csvData, vizData, startDate, endDate, typeJour, ferie) {
           codeArret: csvData[i].arret_code,
           nomArret: csvData[i].arret_nom,
           sequenceArret: csvData[i].sequence_arret,
-          minutesEcart: [],
+          minutesEcart: new Map(),
           moyMinutesEcart: null,
-          nClients: [],
+          nClients: new Map(),
           moyNClients: null,
-          ponctualite: [],
+          ponctualite: new Map(),
           tauxPonctualite: null,
-          minutesEcartClient: [],
+          minutesEcartClient: new Map(),
           moyMinutesEcartClient: null
         });
         posArret = vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.length - 1;
       }
 
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcart.push(csvData[i].Minutes_ecart_planifie);
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].nClients.push(csvData[i].montants);
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].ponctualite.push(csvData[i].Etat_Ponctualite);
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcartClient.push(csvData[i].Minutes_ecart_planifie * csvData[i].montants);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcart.set(csvData[i].date, csvData[i].Minutes_ecart_planifie);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].nClients.set(csvData[i].date, csvData[i].montants);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].ponctualite.set(csvData[i].date, csvData[i].Etat_Ponctualite);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcartClient.set(csvData[i].date, csvData[i].Minutes_ecart_planifie * csvData[i].montants);
     }
-  } // Fonctions pour créer les indicateurs
-
-
-  var average = function average(arr) {
-    return +(arr.reduce(function (a, b) {
-      return a + b;
-    }, 0) / arr.length).toFixed(2);
-  }; // https://poopcode.com/calculate-the-average-of-an-array-of-numbers-in-javascript/
-
-
-  var computeTauxPonctualite = function computeTauxPonctualite(arr) {
-    return arr.filter(function (x) {
-      return x === 'Ponctuel';
-    }).length / arr.length;
-  }; // Parcours de vizData pour calculer les indicateurs pour chaque ligne.arret
+  } // Parcours de vizData pour calculer les indicateurs pour chaque ligne.arret
 
 
   vizData.forEach(function (ligne) {
     ligne.girouettes.forEach(function (girouette) {
       girouette.voyages.forEach(function (voyage) {
         voyage.arrets.forEach(function (arret) {
-          arret.moyMinutesEcart = average(arret.minutesEcart);
-          arret.moyNClients = average(arret.nClients);
-          arret.moyMinutesEcartClient = average(arret.minutesEcartClient);
-          arret.tauxPonctualite = computeTauxPonctualite(arret.ponctualite);
+          var sumMinutesEcart = 0;
+          arret.minutesEcart.forEach(function (v) {
+            sumMinutesEcart += v;
+          });
+          arret.moyMinutesEcart = sumMinutesEcart / arret.minutesEcart.size;
+          var sumNClients = 0;
+          arret.nClients.forEach(function (v) {
+            sumNClients += v;
+          });
+          arret.moyNClients = sumNClients / arret.nClients.size;
+          var sumMinutesEcartClient = 0;
+          arret.minutesEcartClient.forEach(function (v) {
+            sumMinutesEcartClient += v;
+          });
+          arret.moyMinutesEcartClient = sumMinutesEcartClient / arret.minutesEcartClient.size;
+          var countPonctuel = 0;
+          arret.ponctualite.forEach(function (v) {
+            if (v === 'Ponctuel') {
+              countPonctuel++;
+            }
+          });
+          arret.tauxPonctualite = countPonctuel / arret.ponctualite.size;
         });
       });
     });
   });
+}
+/**
+ * aggregateDataForViz3() remplit l'objet vizData à partir des données du csv (data)
+ *
+ * @param {*} csvData L'array d'objets qui contient les lignes du csv, modifié par preprocess.addDayType()
+ * @param {*} vizData L'array d'objets qui contient les données consolidées requises pour générer les viz
+ * @param {*} startDate Date de début
+ * @param {*} endDate Date de fin
+ * @param {*} typeJour On considère semaine ou weekend
+ * @param {*} ferie On considère les fériés si true
+ */
+
+
+function aggregateDataForViz3(csvData, vizData, startDate, endDate, typeJour, ferie) {
+  // Boucle sur les lignes de csvData pour remplir la structure vizData
+  for (var i = 0; i < csvData.length; i++) {
+    if (csvData[i].date >= startDate && csvData[i].date <= endDate && csvData[i].type_jour === typeJour && csvData[i].ferie === ferie) {
+      if (vizData.length === 0) {
+        vizData.push({
+          date: csvData[i].date,
+          lignes: []
+        });
+      } // On ajoute la date si elle n'existe pas déjà dans vizData
+
+
+      var posDate = vizData.findIndex(function (e) {
+        return e.date.valueOf() === csvData[i].date.valueOf();
+      });
+
+      if (posDate === -1) {
+        vizData.push({
+          date: csvData[i].date,
+          lignes: []
+        });
+        posDate = vizData.length - 1;
+      } // On ajoute la ligne si elle n'existe pas déjà dans vizData
+
+
+      var posLigne = vizData[posDate].lignes.findIndex(function (e) {
+        return e.ligne === csvData[i].ligne;
+      });
+
+      if (posLigne === -1) {
+        vizData[posDate].lignes.push({
+          ligne: csvData[i].ligne,
+          girouettes: []
+        });
+        posLigne = vizData[posDate].lignes.length - 1;
+      } // On ajoute la girouette si elle n'existe pas déjà dans vizData
+
+
+      var posGirouette = vizData[posDate].lignes[posLigne].girouettes.findIndex(function (e) {
+        return e.girouette === csvData[i].Girouette;
+      });
+
+      if (posGirouette === -1) {
+        vizData[posDate].lignes[posLigne].girouettes.push({
+          girouette: csvData[i].Girouette,
+          voyages: []
+        });
+        posGirouette = vizData[posDate].lignes[posLigne].girouettes.length - 1;
+      } // On ajoute le voyage s'il n'existe pas déjà dans vizData
+
+
+      var posVoyage = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages.findIndex(function (e) {
+        return e.voyage === csvData[i].voyage;
+      });
+
+      if (posVoyage === -1) {
+        vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages.push({
+          voyage: csvData[i].voyage,
+          arrets: []
+        });
+        posVoyage = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages.length - 1;
+      } // On ajoute l'arrêt s'il n'existe pas déjà dans vizData
+
+
+      var posArret = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.findIndex(function (e) {
+        return e.codeArret === csvData[i].arret_code;
+      });
+
+      if (posArret === -1) {
+        vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.push({
+          codeArret: csvData[i].arret_code,
+          nomArret: csvData[i].arret_nom,
+          sequenceArret: csvData[i].sequence_arret,
+          minutesEcart: csvData[i].Minutes_ecart_planifie,
+          nClients: csvData[i].montants,
+          ponctualite: csvData[i].Etat_Ponctualite,
+          minutesEcartClient: csvData[i].Minutes_ecart_planifie * csvData[i].montants
+        });
+        posArret = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.length - 1;
+      }
+    }
+  }
 }
 },{}],"scripts/candlestick.js":[function(require,module,exports) {
 "use strict";
@@ -930,6 +1046,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.generateViz2 = generateViz2;
+exports.updateDirectionList = updateDirectionList;
+exports.updateTrajectList = updateTrajectList;
 exports.getData = getData;
 exports.setLegend = setLegend;
 exports.generateTopGraph = generateTopGraph;
@@ -958,26 +1076,68 @@ function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 var FONT_SIZE = 14;
-var BAR_FILL_COLOR = '#D5E8D4';
-var BAR_STROKE_COLOR = '#8DBA74';
-var BAR_FILL_COLOR_POSITIVE = '#D5E8D4';
-var BAR_STROKE_COLOR_POSITIVE = '#8DBA74';
-var BAR_STROKE_COLOR_NEGATIVE = '#C57471';
-var BAR_FILL_COLOR_NEGATIVE = '#F8CECC';
+var BAR_FILL_COLOR = '#9CE39C';
+var BAR_STROKE_COLOR = '#3FC93F';
+var BAR_FILL_COLOR_POSITIVE = '#9CE39C';
+var BAR_STROKE_COLOR_POSITIVE = '#3FC93F';
+var BAR_STROKE_COLOR_NEGATIVE = '#FE4747';
+var BAR_FILL_COLOR_NEGATIVE = '#FE8888';
 var BAR_STROKE_WIDTH = 2;
 /**
  *
  */
 
-function generateViz2(data, line, direction, trajectNumber) {
+function generateViz2(data) {
+  //set onload dropdown values
+  data.currentLine = parseInt(d3.select("#line-dropdown").node().value);
+  data.currentDirection = d3.select("#direction-dropdown").node().value;
+  data.currentTraject = parseInt(d3.select("#traject-dropdown").node().value);
+  updateDirectionList(data, data.currentLine);
+  updateTrajectList(data, data.currentLine, data.currentDirection);
   var container = d3.select('#candlestick-graph-container');
   var topDiv = container.append('div').style('width', '100%').style('height', '65%').style('min-width', '900px');
   var candlestickContainer = topDiv.append('div').style('width', '80%').style('height', '100%').style('float', 'left');
   var legendContainer = topDiv.append('div').style('width', '170px').style('height', '170px').style('float', 'right');
   var bottomDiv = container.append('div').style('width', '100%').style('height', '35%').style('min-height', '400px').style('min-width', '900px');
-  var barGraphContainer = bottomDiv.append('div').style('width', '80%').style('height', '100%'); // Fetch data
+  var barGraphContainer = bottomDiv.append('div').style('width', '80%').style('height', '100%'); // Fetch dropdown value change
 
-  var dataArray = getData(data, line, direction, trajectNumber);
+  d3.select('#direction-dropdown').on('change', function () {
+    var newData = d3.select("#direction-dropdown").node().value;
+    data.currentDirection = newData;
+    updateTrajectList(data, data.currentLine, data.currentDirection);
+    var dataArray = getData(data, data.currentLine, data.currentDirection, data.currentTraject);
+    data.stops = dataArray[0];
+    data.delay = dataArray[1];
+    data.amounts = dataArray[2];
+    generateTopGraph(candlestickContainer, data);
+    setLegend(legendContainer);
+    generateBottomGraph(barGraphContainer, data);
+  });
+  d3.select('#traject-dropdown').on('change', function () {
+    var newData = eval(d3.select(this).property('value'));
+    data.currentTraject = newData;
+    var dataArray = getData(data, data.currentLine, data.currentDirection, data.currentTraject);
+    data.stops = dataArray[0];
+    data.delay = dataArray[1];
+    data.amounts = dataArray[2];
+    generateTopGraph(candlestickContainer, data);
+    setLegend(legendContainer);
+    generateBottomGraph(barGraphContainer, data);
+  });
+  d3.select('#line-dropdown').on('change', function () {
+    var newData = parseInt(eval(d3.select(this).property('value')));
+    data.currentLine = newData;
+    updateDirectionList(data, data.currentLine);
+    updateTrajectList(data, data.currentLine, data.currentDirection);
+    var dataArray = getData(data, data.currentLine, data.currentDirection, data.currentTraject);
+    data.stops = dataArray[0];
+    data.delay = dataArray[1];
+    data.amounts = dataArray[2];
+    generateTopGraph(candlestickContainer, data);
+    setLegend(legendContainer);
+    generateBottomGraph(barGraphContainer, data);
+  });
+  var dataArray = getData(data, data.currentLine, data.currentDirection, data.currentTraject);
   data.stops = dataArray[0];
   data.delay = dataArray[1];
   data.amounts = dataArray[2]; // Regenerate graphs on resize
@@ -991,6 +1151,54 @@ function generateViz2(data, line, direction, trajectNumber) {
       generateBottomGraph(barGraphContainer, data);
     }).observe(barGraphContainer.node());
   }
+}
+
+function updateDirectionList(vizData, line) {
+  var posLigne = vizData.findIndex(function (e) {
+    return e.ligne === line;
+  });
+  var options = "";
+
+  for (var i = 0; i < vizData[posLigne].girouettes.length; i++) {
+    var direction = vizData[posLigne].girouettes[i].girouette;
+
+    if (i == 0) {
+      options += "<option selected value=\"".concat(direction, "\">").concat(direction, "</option>");
+      vizData.currentDirection = direction;
+    } else {
+      options += "<option value=\"".concat(direction, "\">").concat(direction, "</option>");
+    }
+  }
+
+  document.getElementById("direction-dropdown").innerHTML = options;
+}
+
+function updateTrajectList(vizData, line, direction) {
+  var posLigne = vizData.findIndex(function (e) {
+    return e.ligne === line;
+  });
+  var posGirouette = vizData[posLigne].girouettes.findIndex(function (e) {
+    return e.girouette === direction;
+  });
+  var listTrajets = vizData[posLigne].girouettes[posGirouette].voyages.map(function (a) {
+    return a.voyage;
+  }).sort(function (a, b) {
+    return a - b;
+  });
+  var options = "";
+
+  for (var i = 0; i < listTrajets.length; i++) {
+    var trajectNumber = listTrajets[i];
+
+    if (i == 0) {
+      options += "<option selected value=".concat(trajectNumber, ">").concat(trajectNumber, "</option>");
+      vizData.currentTraject = trajectNumber;
+    } else {
+      options += "<option value=".concat(trajectNumber, ">").concat(trajectNumber, "</option>");
+    }
+  }
+
+  document.getElementById("traject-dropdown").innerHTML = options;
 }
 /**
  * @param ligne 
@@ -1114,6 +1322,7 @@ function generateCandleGraph(container, data) {
 
   var lines = svg.append('g').attr('id', 'vertLine');
   var bars = svg.append('g').attr('id', 'bars');
+  var hoverBars = svg.append('g').attr('id', 'hoverBars');
   var previousDelay = 0;
   var fillColor = BAR_FILL_COLOR_NEGATIVE;
   var strockeColor = BAR_STROKE_COLOR_NEGATIVE;
@@ -1138,18 +1347,21 @@ function generateCandleGraph(container, data) {
     }
 
     lines.append("line").attr("x1", x + xScale.bandwidth() / 2).attr("x2", x + xScale.bandwidth() / 2).attr("y1", yScale(Math.min.apply(Math, _toConsumableArray(data.delay)))).attr("y2", yScale(Math.max.apply(Math, _toConsumableArray(data.delay)))).attr('class', "stop".concat(i, " line")).style("stroke-width", 2).style("stroke", "black").style("fill", "none").style('visibility', 'hidden');
-    bars.append('rect').attr('x', x).attr('width', xScale.bandwidth()).attr('height', height).attr('y', yPos).attr('fill', fillColor).attr('stroke', strockeColor).attr('stroke-width', BAR_STROKE_WIDTH).attr('class', "stop".concat(i)).on("mouseover", function (d) {
+    bars.append('rect').attr('x', x).attr('width', xScale.bandwidth()).attr('height', height).attr('y', yPos).attr('fill', fillColor).attr('stroke', strockeColor).attr('stroke-width', BAR_STROKE_WIDTH).attr('class', "stop".concat(i));
+    bars.append("text").text("".concat(Math.round(data.delay[i] * 100) / 100)).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 14).style('visibility', 'hidden');
+    hoverBars.append('rect').attr('x', x).attr('width', xScale.bandwidth()).attr('height', yScale(0) - yScale(Math.max.apply(Math, _toConsumableArray(data.delay)) - Math.min.apply(Math, _toConsumableArray(data.delay)))).attr('y', yScale(Math.max.apply(Math, _toConsumableArray(data.delay)))).attr('fill', 'transparent') // Highlight direction
+    .on("mouseover", function (d) {
       d3.selectAll(".stop".concat(i)).raise().attr('stroke-width', BAR_STROKE_WIDTH * 2);
       d3.selectAll(".stop".concat(i, ".line")).style('visibility', 'visible');
       d3.selectAll(".stop".concat(i, ".textValue")).style('visibility', 'visible');
       d3.selectAll(".axisText".concat(i)).attr("font-weight", 1000);
-    }).on("mouseout", function () {
+    }) // Unhighlight direction
+    .on("mouseout", function () {
       d3.selectAll(".stop".concat(i)).attr('stroke-width', BAR_STROKE_WIDTH);
       d3.selectAll(".stop".concat(i, ".line")).style('visibility', 'hidden');
       d3.selectAll(".stop".concat(i, ".textValue")).style('visibility', 'hidden');
       d3.selectAll(".axisText".concat(i)).attr("font-weight", 0);
     });
-    bars.append("text").text("".concat(data.delay[i])).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 14).style('visibility', 'hidden');
     previousDelay = data.delay[i];
   };
 
@@ -1203,23 +1415,26 @@ function generateBarGraph(container, data) {
 
   var lines = svg.append('g').attr('id', 'vertLine');
   var bars = svg.append('g').attr('id', 'bars');
+  var hoverBars = svg.append('g').attr('id', 'hoverBars');
 
   var _loop2 = function _loop2(i) {
     var x = xScale(data.stops[i]);
     var y = yScale(data.amounts[i]);
     lines.append("line").attr("x1", x + xScale.bandwidth() / 2).attr("x2", x + xScale.bandwidth() / 2).attr("y1", yScale(0)).attr("y2", yScale(Math.max.apply(Math, _toConsumableArray(data.amounts)))).attr('class', "stop".concat(i, " line")).style("stroke-width", 2).style("stroke", "black").style("fill", "none").style('visibility', 'hidden');
-    bars.append('rect').attr('x', x).attr('width', xScale.bandwidth()).attr('height', yScale(0) - y).attr('y', y).attr('fill', BAR_FILL_COLOR).attr('stroke', BAR_STROKE_COLOR).attr('stroke-width', BAR_STROKE_WIDTH).attr('class', "stop".concat(i)).on("mouseover", function (d) {
+    bars.append('rect').attr('x', x).attr('width', xScale.bandwidth()).attr('height', yScale(0) - y).attr('y', y).attr('fill', BAR_FILL_COLOR).attr('stroke', BAR_STROKE_COLOR).attr('stroke-width', BAR_STROKE_WIDTH).attr('class', "stop".concat(i));
+    bars.append("text").text("".concat(Math.round(data.amounts[i] * 100) / 100)).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 14).style('visibility', 'hidden');
+    hoverBars.append('rect').attr('x', x).attr('width', xScale.bandwidth()).attr('height', yScale(0) - yScale(Math.max.apply(Math, _toConsumableArray(data.amounts)))).attr('y', yScale(Math.max.apply(Math, _toConsumableArray(data.amounts)))).attr('fill', 'transparent') // Highlight direction
+    .on('mouseover', function () {
       d3.selectAll(".stop".concat(i)).raise().attr('stroke-width', BAR_STROKE_WIDTH * 2);
       d3.selectAll(".stop".concat(i, ".line")).style('visibility', 'visible');
       d3.selectAll(".stop".concat(i, ".textValue")).style('visibility', 'visible');
-      d3.selectAll(".axisText".concat(i)).attr("font-weight", 1000);
+      d3.selectAll(".axisText".concat(i)).attr("font-weight", 1000); // Unhighlight direction
     }).on("mouseout", function () {
       d3.selectAll(".stop".concat(i)).attr('stroke-width', BAR_STROKE_WIDTH);
       d3.selectAll(".stop".concat(i, ".line")).style('visibility', 'hidden');
       d3.selectAll(".stop".concat(i, ".textValue")).style('visibility', 'hidden');
       d3.selectAll(".axisText".concat(i)).attr("font-weight", 0);
     });
-    bars.append("text").text("".concat(data.amounts[i])).attr('x', x + xScale.bandwidth() + 5).attr('y', y - 10).attr('fill', 'black').attr('class', "stop".concat(i, " textValue")).attr('font-size', 14).style('visibility', 'hidden');
   };
 
   for (var i = 0; i < data.amounts.length; i++) {
@@ -9313,9 +9528,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
   };
   helper.setCanvasSize(svgSize.width, svgSize.height);
   helper.generateMapG(svgSize.width, svgSize.height);
-  helper.generateMarkerG(svgSize.width, svgSize.height);
-  helper.appendGraphLabels(d3.select('.main-svg'));
-  helper.initPanelDiv(); // Solution temporaire, éventuellement l'utilisateur peut choisir la période qui l'intéresse, s'il veut inclure les week-end et les fériés.
+  helper.generateMarkerG(svgSize.width, svgSize.height); // Solution temporaire, éventuellement l'utilisateur peut choisir la période qui l'intéresse, s'il veut inclure les week-end et les fériés.
 
   var startDate = new Date('2021-09-01');
   var endDate = new Date('2021-12-01');
@@ -9344,8 +9557,27 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
       preprocess.addDayType(csvData);
       preprocess.aggregateData(csvData, vizData, startDate, endDate, typeJour, ferie);
-      heatmap.drawHeatmap(vizData, 9, 'Lafontaine Via Gare  Saint-Jérôme', 'moyMinutesEcart');
-      candlestick.generateViz2(vizData, 9, 'Lafontaine Via Gare  Saint-Jérôme', 15);
+      var line = document.getElementById("line-dropdown");
+      var direction = document.getElementById("direction-dropdown");
+      var indicateur = document.getElementById("indicateur");
+      heatmap.drawHeatmap(vizData, parseInt(line.value), direction.value);
+      window.addEventListener('resize', function () {
+        heatmap.drawHeatmap(vizData, parseInt(line.value), direction.value);
+      });
+      /*  line.addEventListener("change", function() {
+         heatmap.drawHeatmap(vizData, parseInt(line.value),  direction.value);
+       });*/
+
+      direction.addEventListener("DOMSubtreeModified", function () {
+        heatmap.drawHeatmap(vizData, parseInt(line.value), direction.value);
+      });
+      direction.addEventListener("change", function () {
+        heatmap.drawHeatmap(vizData, parseInt(line.value), direction.value);
+      });
+      indicateur.addEventListener("change", function () {
+        heatmap.drawHeatmap(vizData, parseInt(line.value), direction.value);
+      });
+      candlestick.generateViz2(vizData);
     });
   }
 })(d3);
@@ -9377,7 +9609,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49407" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51439" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

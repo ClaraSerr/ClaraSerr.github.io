@@ -126,15 +126,10 @@ Object.defineProperty(exports, "__esModule", {
 exports.generateMapG = generateMapG;
 exports.generateMarkerG = generateMarkerG;
 exports.setCanvasSize = setCanvasSize;
-exports.appendGraphLabels = appendGraphLabels;
-exports.initPanelDiv = initPanelDiv;
-exports.getSimulation = getSimulation;
-exports.simulate = simulate;
-exports.getProjection = getProjection;
-exports.getPath = getPath;
 exports.getClosestStep = getClosestStep;
 exports.getSteps = getSteps;
 exports.getQuantiles = getQuantiles;
+exports.getWeekNumber = getWeekNumber;
 
 /**
  * Generates the SVG element g which will contain the map base.
@@ -168,87 +163,6 @@ function generateMarkerG(width, height) {
 
 function setCanvasSize(width, height) {
   d3.select('#map').select('svg').attr('width', width).attr('height', height);
-}
-/**
- * Appends the labels for the graph.
- *
- * @param {*} g The d3 Selection of the graph's g SVG element
- */
-
-
-function appendGraphLabels(g) {
-  /* g.append('text')
-     .text('Achalandage et ponctualité des lignes de bus 9 et 22 de la couronne Nord de Montréal')
-     .attr('class', 'title')
-     .attr('fill', '#000000')
-     .attr('font-family', 'myriad-pro')
-     .attr('font-size', 28)
-     .attr('transform', 'translate(50, 50)')
-  
-   g.append('text')
-     .text('Sous-titre')
-     .attr('class', 'title')
-     .attr('fill', '#000000')
-     .attr('font-family', 'myriad-pro')
-     .attr('font-size', 18)
-     .attr('transform', 'translate(50, 85)') */
-}
-/**
- * Initializes the div which will contain the information panel.
- */
-
-
-function initPanelDiv() {
-  d3.select('.graph').append('div').attr('id', 'panel').style('width', '215px').style('border', '1px solid black').style('padding', '10px').style('visibility', 'hidden');
-}
-/**
- * Initializes the simulation used to place the circles
- *
- * @param {object} data The data to be displayed
- * @returns {*} The generated simulation
- */
-
-
-function getSimulation(data) {
-  return d3.forceSimulation(data.features).alphaDecay(0).velocityDecay(0.75).force('collision', d3.forceCollide(5).strength(1));
-}
-/**
- * Update the (x, y) position of the circles'
- * centers on each tick of the simulation.
- *
- * @param {*} simulation The simulation used to position the cirles.
- */
-
-
-function simulate(simulation) {
-  simulation.on('tick', function () {
-    d3.selectAll('.marker').attr('cx', function (d) {
-      return d.x;
-    }).attr('cy', function (d) {
-      return d.y;
-    });
-  });
-}
-/**
- * Sets up the projection to be used.
- *
- * @returns {*} The projection to use to trace the map elements
- */
-
-
-function getProjection() {
-  return d3.geoMercator().center([-73.708879, 45.579611]).scale(70000);
-}
-/**
- * Sets up the path to be used.
- *
- * @param {*} projection The projection used to trace the map elements
- * @returns {*} The path to use to trace the map elements
- */
-
-
-function getPath(projection) {
-  return d3.geoPath().projection(projection);
 }
 /**
  * @param {number} nSteps The ideal number of steps
@@ -318,6 +232,25 @@ function getQuantiles(array) {
   var quantiles = [array[0], d3.quantile(array, 0.25), d3.median(array), d3.quantile(array, 0.75), array[array.length - 1]];
   return quantiles;
 }
+/**
+ * @param {Date} d date
+ * @returns {number} weekNo
+ */
+
+
+function getWeekNumber(d) {
+  // Copy date so don't modify original
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); // Set to nearest Thursday: current date + 4 - current day number
+  // Make Sunday's day number 7
+
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); // Get first day of year
+
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); // Calculate full weeks to nearest Thursday
+
+  var weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7); // Return array of year and week number
+
+  return [d.getUTCFullYear(), weekNo];
+}
 },{}],"scripts/preprocess.js":[function(require,module,exports) {
 "use strict";
 
@@ -326,6 +259,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.addDayType = addDayType;
 exports.aggregateData = aggregateData;
+exports.aggregateDataForViz3 = aggregateDataForViz3;
 
 // INF8808 - Exo
 //
@@ -426,52 +360,151 @@ function aggregateData(csvData, vizData, startDate, endDate, typeJour, ferie) {
           codeArret: csvData[i].arret_code,
           nomArret: csvData[i].arret_nom,
           sequenceArret: csvData[i].sequence_arret,
-          minutesEcart: [],
+          minutesEcart: new Map(),
           moyMinutesEcart: null,
-          nClients: [],
+          nClients: new Map(),
           moyNClients: null,
-          ponctualite: [],
+          ponctualite: new Map(),
           tauxPonctualite: null,
-          minutesEcartClient: [],
+          minutesEcartClient: new Map(),
           moyMinutesEcartClient: null
         });
         posArret = vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.length - 1;
       }
 
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcart.push(csvData[i].Minutes_ecart_planifie);
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].nClients.push(csvData[i].montants);
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].ponctualite.push(csvData[i].Etat_Ponctualite);
-      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcartClient.push(csvData[i].Minutes_ecart_planifie * csvData[i].montants);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcart.set(csvData[i].date, csvData[i].Minutes_ecart_planifie);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].nClients.set(csvData[i].date, csvData[i].montants);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].ponctualite.set(csvData[i].date, csvData[i].Etat_Ponctualite);
+      vizData[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets[posArret].minutesEcartClient.set(csvData[i].date, csvData[i].Minutes_ecart_planifie * csvData[i].montants);
     }
-  } // Fonctions pour créer les indicateurs
-
-
-  var average = function average(arr) {
-    return +(arr.reduce(function (a, b) {
-      return a + b;
-    }, 0) / arr.length).toFixed(2);
-  }; // https://poopcode.com/calculate-the-average-of-an-array-of-numbers-in-javascript/
-
-
-  var computeTauxPonctualite = function computeTauxPonctualite(arr) {
-    return arr.filter(function (x) {
-      return x === 'Ponctuel';
-    }).length / arr.length;
-  }; // Parcours de vizData pour calculer les indicateurs pour chaque ligne.arret
+  } // Parcours de vizData pour calculer les indicateurs pour chaque ligne.arret
 
 
   vizData.forEach(function (ligne) {
     ligne.girouettes.forEach(function (girouette) {
       girouette.voyages.forEach(function (voyage) {
         voyage.arrets.forEach(function (arret) {
-          arret.moyMinutesEcart = average(arret.minutesEcart);
-          arret.moyNClients = average(arret.nClients);
-          arret.moyMinutesEcartClient = average(arret.minutesEcartClient);
-          arret.tauxPonctualite = computeTauxPonctualite(arret.ponctualite);
+          var sumMinutesEcart = 0;
+          arret.minutesEcart.forEach(function (v) {
+            sumMinutesEcart += v;
+          });
+          arret.moyMinutesEcart = sumMinutesEcart / arret.minutesEcart.size;
+          var sumNClients = 0;
+          arret.nClients.forEach(function (v) {
+            sumNClients += v;
+          });
+          arret.moyNClients = sumNClients / arret.nClients.size;
+          var sumMinutesEcartClient = 0;
+          arret.minutesEcartClient.forEach(function (v) {
+            sumMinutesEcartClient += v;
+          });
+          arret.moyMinutesEcartClient = sumMinutesEcartClient / arret.minutesEcartClient.size;
+          var countPonctuel = 0;
+          arret.ponctualite.forEach(function (v) {
+            if (v === 'Ponctuel') {
+              countPonctuel++;
+            }
+          });
+          arret.tauxPonctualite = countPonctuel / arret.ponctualite.size;
         });
       });
     });
   });
+}
+/**
+ * aggregateDataForViz3() remplit l'objet vizData à partir des données du csv (data)
+ *
+ * @param {*} csvData L'array d'objets qui contient les lignes du csv, modifié par preprocess.addDayType()
+ * @param {*} vizData L'array d'objets qui contient les données consolidées requises pour générer les viz
+ * @param {*} startDate Date de début
+ * @param {*} endDate Date de fin
+ * @param {*} typeJour On considère semaine ou weekend
+ * @param {*} ferie On considère les fériés si true
+ */
+
+
+function aggregateDataForViz3(csvData, vizData, startDate, endDate, typeJour, ferie) {
+  // Boucle sur les lignes de csvData pour remplir la structure vizData
+  for (var i = 0; i < csvData.length; i++) {
+    if (csvData[i].date >= startDate && csvData[i].date <= endDate && csvData[i].type_jour === typeJour && csvData[i].ferie === ferie) {
+      if (vizData.length === 0) {
+        vizData.push({
+          date: csvData[i].date,
+          lignes: []
+        });
+      } // On ajoute la date si elle n'existe pas déjà dans vizData
+
+
+      var posDate = vizData.findIndex(function (e) {
+        return e.date.valueOf() === csvData[i].date.valueOf();
+      });
+
+      if (posDate === -1) {
+        vizData.push({
+          date: csvData[i].date,
+          lignes: []
+        });
+        posDate = vizData.length - 1;
+      } // On ajoute la ligne si elle n'existe pas déjà dans vizData
+
+
+      var posLigne = vizData[posDate].lignes.findIndex(function (e) {
+        return e.ligne === csvData[i].ligne;
+      });
+
+      if (posLigne === -1) {
+        vizData[posDate].lignes.push({
+          ligne: csvData[i].ligne,
+          girouettes: []
+        });
+        posLigne = vizData[posDate].lignes.length - 1;
+      } // On ajoute la girouette si elle n'existe pas déjà dans vizData
+
+
+      var posGirouette = vizData[posDate].lignes[posLigne].girouettes.findIndex(function (e) {
+        return e.girouette === csvData[i].Girouette;
+      });
+
+      if (posGirouette === -1) {
+        vizData[posDate].lignes[posLigne].girouettes.push({
+          girouette: csvData[i].Girouette,
+          voyages: []
+        });
+        posGirouette = vizData[posDate].lignes[posLigne].girouettes.length - 1;
+      } // On ajoute le voyage s'il n'existe pas déjà dans vizData
+
+
+      var posVoyage = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages.findIndex(function (e) {
+        return e.voyage === csvData[i].voyage;
+      });
+
+      if (posVoyage === -1) {
+        vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages.push({
+          voyage: csvData[i].voyage,
+          arrets: []
+        });
+        posVoyage = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages.length - 1;
+      } // On ajoute l'arrêt s'il n'existe pas déjà dans vizData
+
+
+      var posArret = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.findIndex(function (e) {
+        return e.codeArret === csvData[i].arret_code;
+      });
+
+      if (posArret === -1) {
+        vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.push({
+          codeArret: csvData[i].arret_code,
+          nomArret: csvData[i].arret_nom,
+          sequenceArret: csvData[i].sequence_arret,
+          minutesEcart: csvData[i].Minutes_ecart_planifie,
+          nClients: csvData[i].montants,
+          ponctualite: csvData[i].Etat_Ponctualite,
+          minutesEcartClient: csvData[i].Minutes_ecart_planifie * csvData[i].montants
+        });
+        posArret = vizData[posDate].lignes[posLigne].girouettes[posGirouette].voyages[posVoyage].arrets.length - 1;
+      }
+    }
+  }
 }
 },{}],"scripts/grouped-quantile.js":[function(require,module,exports) {
 "use strict";
@@ -482,6 +515,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.generateViz3 = generateViz3;
 exports.generateDelayGraph = generateDelayGraph;
 exports.generateTrafficGraph = generateTrafficGraph;
+exports.setTrafficGraph = setTrafficGraph;
 exports.generateGroupedQuantileGraph = generateGroupedQuantileGraph;
 exports.getDelayQuantileSets = getDelayQuantileSets;
 exports.getTrafficQuantileSets = getTrafficQuantileSets;
@@ -516,9 +550,9 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 var MARGIN = {
   top: 52,
-  right: 100,
-  bottom: 125,
-  left: 100
+  right: 80,
+  bottom: 100,
+  left: 80
 };
 var FONT_SIZE = 14;
 var DIRECTIONS_ANGLE = -45;
@@ -528,6 +562,7 @@ var QUANTILE_STROKE_WIDTH = 2;
 var NUMBER_OF_TICKS = 10;
 var GRADIENT_COLORS = ['#ff9999', '#99ff99', '#ffff99'];
 var GRADIENT_THRESHOLDS = ['10', '5', '0', '-5'];
+var selectValue = '';
 /**
  * @param vizData
  */
@@ -589,7 +624,7 @@ function generateDelayGraph(container, data, vizData) {
 
   svg.select('#y-axis > .label').text('Minute').attr('fill', '#898989'); // Legend
 
-  var legend = svg.insert('g', '#x-axis').style("font-size", "12px");
+  var legend = svg.insert('g', '#x-axis').style('font-size', '12px');
   var middleY = (HEIGHT - MARGIN.top - MARGIN.bottom) / 2 + MARGIN.top;
   var squareWidth = FONT_SIZE * 2 / 3;
   var paddingX = FONT_SIZE * 2;
@@ -610,21 +645,82 @@ function generateDelayGraph(container, data, vizData) {
 
 function generateTrafficGraph(container, data, vizData) {
   // Fetch data
-  data.quantileSets = getTrafficQuantileSets(vizData, 'moyMinutesEcart'); // Generate common graph
+  var _getTrafficQuantileSe = getTrafficQuantileSets(vizData),
+      _getTrafficQuantileSe2 = _slicedToArray(_getTrafficQuantileSe, 3),
+      quantileTripSets = _getTrafficQuantileSe2[0],
+      quantileDaySets = _getTrafficQuantileSe2[1],
+      quantileWeekSets = _getTrafficQuantileSe2[2];
 
+  if (selectValue === '') {
+    data.quantileSets = quantileTripSets;
+  } else {
+    if (selectValue === 'week') {
+      data.quantileSets = quantileWeekSets;
+    } else if (selectValue === 'day') {
+      data.quantileSets = quantileDaySets;
+    } else if (selectValue === 'trip') {
+      data.quantileSets = quantileTripSets;
+    }
+  } // Create select
+
+
+  var weekOption = document.createElement('option');
+  weekOption.value = 'week';
+  weekOption.innerHTML = 'semaine';
+  var dayOption = document.createElement('option');
+  dayOption.value = 'day';
+  dayOption.innerHTML = 'jour';
+  var tripOption = document.createElement('option');
+  tripOption.value = 'trip';
+  tripOption.innerHTML = 'trajet';
+  var select = document.createElement('select');
+  select.appendChild(tripOption);
+  select.appendChild(dayOption);
+  select.appendChild(weekOption);
+
+  if (selectValue !== '') {
+    select.value = selectValue;
+  }
+
+  select.addEventListener('change', function () {
+    if (this.value === 'week') {
+      data.quantileSets = quantileWeekSets;
+    } else if (this.value === 'day') {
+      data.quantileSets = quantileDaySets;
+    } else if (this.value === 'trip') {
+      data.quantileSets = quantileTripSets;
+    }
+
+    selectValue = this.value;
+    setTrafficGraph(container, data, select);
+  }); // generate traffic graph
+
+  setTrafficGraph(container, data, select);
+}
+/**
+ * @param {Selection} container The div to generate the graph in
+ * @param {object} data The data to fetch
+ * @param {object} select select
+ */
+
+
+function setTrafficGraph(container, data, select) {
+  // Generate common graph
   data.title = 'Achalandage Moyen';
 
   var _generateGroupedQuant3 = generateGroupedQuantileGraph(container, data),
       _generateGroupedQuant4 = _slicedToArray(_generateGroupedQuant3, 1),
-      svg = _generateGroupedQuant4[0]; // Set y axis label
+      svg = _generateGroupedQuant4[0]; // Position select
 
 
-  svg.select('#y-axis > .label').text("");
-  svg.select('#y-axis > .label').append('tspan').attr("x", "88").attr("y", "21").text("Nombre");
-  svg.select('#y-axis > .label').append('tspan').attr("dx", "-51").attr("dy", "15").text("de personnes");
-  svg.select('#y-axis > .label').append('tspan').attr("dx", "-84").attr("dy", "14").text("par trajet");
-  /*.text('Nombre de personnes par trajet')
-  .attr('fill', '#898989')*/
+  var top = svg.node().getBoundingClientRect().top + 30;
+  var left = svg.node().getBoundingClientRect().left + MARGIN.left - 70;
+  select.setAttribute('style', "position: absolute; top: ".concat(top, "px; left: ").concat(left, "px; font-size: 12px"));
+  container.node().appendChild(select); // Label
+
+  svg.select('#y-axis > .label').text('');
+  svg.select('#y-axis > .label').append('tspan').attr('x', (MARGIN.left - 1).toString()).attr('y', '13').text('Nombre de');
+  svg.select('#y-axis > .label').append('tspan').attr('x', (MARGIN.left + 9).toString()).attr('y', '25').text('personnes par');
 }
 /**
  * @param {Selection} container The div to generate the graph in
@@ -703,7 +799,7 @@ function generateGroupedQuantileGraph(container, data) {
     _iterator2.f();
   }
 
-  var dataScale = d3.scaleLinear().domain([minValue, maxValue]).range([HEIGHT - MARGIN.bottom - FONT_SIZE / 2, MARGIN.top + FONT_SIZE / 2]); // ===================== X AXIS =====================
+  var dataScale = d3.scaleLinear().domain([Math.min(minValue, 0), maxValue]).range([HEIGHT - MARGIN.bottom - FONT_SIZE / 2, MARGIN.top + FONT_SIZE / 2]); // ===================== X AXIS =====================
 
   var xAxis = svg.append('g').attr('id', 'x-axis'); // Draw axis line
 
@@ -730,7 +826,7 @@ function generateGroupedQuantileGraph(container, data) {
 
   for (var i = 0; i < data.directions.length; i++) {
     var x = directionsScale(data.directions[i]);
-    xAxis.append('text').attr('text-anchor', 'end').attr('transform', "translate(".concat(x, ", ").concat(directionValuesY, ") rotate(").concat(DIRECTIONS_ANGLE, ")")).text(data.directions[i]).style('font-size', "12px").attr('font-family', 'sans-serif').attr('class', "direction".concat(i, " label"));
+    xAxis.append('text').attr('text-anchor', 'end').attr('transform', "translate(".concat(x, ", ").concat(directionValuesY, ") rotate(").concat(DIRECTIONS_ANGLE, ")")).text(data.directions[i]).style('font-size', '12px').attr('font-family', 'sans-serif').attr('class', "direction".concat(i, " label"));
   } // Draw labels
 
 
@@ -749,13 +845,11 @@ function generateGroupedQuantileGraph(container, data) {
   try {
     for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
       var step = _step4.value;
+      var y = dataScale(step); // Draw data values
 
-      var _y = dataScale(step); // Draw data values
+      yAxis.append('text').attr('text-anchor', 'end').attr('x', MARGIN.left - FONT_SIZE).attr('y', y + FONT_SIZE / 3).text(step).attr('font-family', 'sans-serif').style('font-size', FONT_SIZE); // Draw ticks
 
-
-      yAxis.append('text').attr('text-anchor', 'end').attr('x', MARGIN.left - FONT_SIZE).attr('y', _y + FONT_SIZE / 3).text(step).attr('font-family', 'sans-serif').style('font-size', FONT_SIZE); // Draw ticks
-
-      yAxis.append('path').attr('d', d3.line()([[MARGIN.left - FONT_SIZE / 2, _y], [MARGIN.left, _y]])).attr('stroke', QUANTILE_STROKE_COLOR).attr('stroke-width', QUANTILE_STROKE_WIDTH);
+      yAxis.append('path').attr('d', d3.line()([[MARGIN.left - FONT_SIZE / 2, y], [MARGIN.left, y]])).attr('stroke', QUANTILE_STROKE_COLOR).attr('stroke-width', QUANTILE_STROKE_WIDTH);
     } // Draw labels
 
   } catch (err) {
@@ -813,13 +907,21 @@ function generateGroupedQuantileGraph(container, data) {
 
     bars.append('path').attr('d', d3.line()([[_x - BAR_WIDTH / 2, q2], [_x + BAR_WIDTH / 2, q2]])).attr('stroke', QUANTILE_STROKE_COLOR).attr('stroke-width', QUANTILE_STROKE_WIDTH).attr('class', "direction".concat(_i2)); // Draw quantile values
 
+    var yValues = [0, 0, 0, 0, 0];
+    var minOffset = 11;
+    var centerOffset = 4;
+    yValues[2] = dataScale(data.quantileSets[_i2][2]) + centerOffset;
+    yValues[3] = Math.min(yValues[2] - minOffset, dataScale(data.quantileSets[_i2][3]) + centerOffset);
+    yValues[4] = Math.min(yValues[3] - minOffset, dataScale(data.quantileSets[_i2][4]) + centerOffset);
+    yValues[1] = Math.max(yValues[2] + minOffset, dataScale(data.quantileSets[_i2][1]) + centerOffset);
+    yValues[0] = Math.max(yValues[1] + minOffset, dataScale(data.quantileSets[_i2][0]) + centerOffset);
+
     for (var j = 0; j < data.quantileSets[_i2].length; j++) {
       var quantile = bars.append('g').attr('class', "direction".concat(_i2, " quantile")).style('visibility', 'hidden');
 
       var _x2 = directionsScale(data.directions[_i2]) + (_i2 % 2 === 0 ? -1 : 1) * (BAR_WIDTH / 2 + FONT_SIZE / 2);
 
-      var y = dataScale(data.quantileSets[_i2][j]);
-      quantile.append('text').attr('x', _x2).attr('y', y).attr('text-anchor', _i2 % 2 === 0 ? 'end' : 'start').text(Math.round(data.quantileSets[_i2][j])).style('font-size', FONT_SIZE).attr('id', "quantile-text-".concat(_i2, "-").concat(j));
+      quantile.append('text').attr('x', _x2).attr('y', yValues[j]).attr('text-anchor', _i2 % 2 === 0 ? 'end' : 'start').text(Math.round(data.quantileSets[_i2][j])).style('font-size', FONT_SIZE).attr('id', "quantile-text-".concat(_i2, "-").concat(j));
     }
   } // ===================== HOVER =====================
   // Create triggers
@@ -829,11 +931,11 @@ function generateGroupedQuantileGraph(container, data) {
     bars.append('rect').attr('width', BAR_WIDTH).attr('x', directionsScale(data.directions[_i3]) - BAR_WIDTH / 2).attr('height', dataScale.range()[0] - dataScale.range()[1] + FONT_SIZE).attr('y', MARGIN.top).attr('fill', 'transparent') // Highlight direction
     .on('mouseover', function () {
       d3.selectAll(".direction".concat(_i3)).attr('stroke-width', QUANTILE_STROKE_WIDTH * 2);
-      d3.selectAll(".direction".concat(_i3, ".label")).attr("font-weight", 1000);
+      d3.selectAll(".direction".concat(_i3, ".label")).attr('font-weight', 1000);
       d3.selectAll(".direction".concat(_i3, ".quantile")).style('visibility', 'visible'); // Unhighlight direction
     }).on('mouseout', function () {
       d3.selectAll(".direction".concat(_i3)).attr('stroke-width', QUANTILE_STROKE_WIDTH);
-      d3.selectAll(".direction".concat(_i3, ".label")).attr("font-weight", 0);
+      d3.selectAll(".direction".concat(_i3, ".label")).attr('font-weight', 0);
       d3.selectAll(".direction".concat(_i3, ".quantile")).style('visibility', 'hidden');
     });
   };
@@ -855,61 +957,59 @@ function generateGroupedQuantileGraph(container, data) {
 
 function getDelayQuantileSets(vizData) {
   var quantileSets = [];
+  var delaySets = [[], [], [], []];
 
   var _iterator6 = _createForOfIteratorHelper(vizData),
       _step6;
 
   try {
     for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-      var line = _step6.value;
+      var day = _step6.value;
 
-      var _iterator7 = _createForOfIteratorHelper(line.girouettes),
-          _step7;
+      for (var i = 0; i < day.lignes.length; i++) {
+        var line = day.lignes[i];
 
-      try {
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-          var direction = _step7.value;
-          var delays = [];
+        for (var j = 0; j < line.girouettes.length; j++) {
+          var direction = line.girouettes[j];
 
-          var _iterator8 = _createForOfIteratorHelper(direction.voyages),
-              _step8;
+          var _iterator7 = _createForOfIteratorHelper(direction.voyages),
+              _step7;
 
           try {
-            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-              var trip = _step8.value;
+            for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+              var trip = _step7.value;
 
-              var _iterator9 = _createForOfIteratorHelper(trip.arrets),
-                  _step9;
+              var _iterator8 = _createForOfIteratorHelper(trip.arrets),
+                  _step8;
 
               try {
-                for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-                  var stop = _step9.value;
-                  delays.push(stop.moyMinutesEcart);
+                for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+                  var stop = _step8.value;
+                  delaySets[i * day.lignes.length + j].push(stop.minutesEcart);
                 }
               } catch (err) {
-                _iterator9.e(err);
+                _iterator8.e(err);
               } finally {
-                _iterator9.f();
+                _iterator8.f();
               }
             }
           } catch (err) {
-            _iterator8.e(err);
+            _iterator7.e(err);
           } finally {
-            _iterator8.f();
+            _iterator7.f();
           }
-
-          quantileSets.push(helper.getQuantiles(delays));
         }
-      } catch (err) {
-        _iterator7.e(err);
-      } finally {
-        _iterator7.f();
       }
     }
   } catch (err) {
     _iterator6.e(err);
   } finally {
     _iterator6.f();
+  }
+
+  for (var _i4 = 0, _delaySets = delaySets; _i4 < _delaySets.length; _i4++) {
+    var delaySet = _delaySets[_i4];
+    quantileSets.push(helper.getQuantiles(delaySet));
   }
 
   return quantileSets;
@@ -921,68 +1021,100 @@ function getDelayQuantileSets(vizData) {
 
 
 function getTrafficQuantileSets(vizData) {
-  var quantileSets = [];
+  var tripSets = [[], [], [], []];
+  var daySets = [[], [], [], []];
+  var weekSets = [[], [], [], []];
+  var lastWeek = helper.getWeekNumber(new Date(Date.parse(vizData[0].date)))[1];
+  var weekClients = [0, 0, 0, 0];
 
-  var _iterator10 = _createForOfIteratorHelper(vizData),
-      _step10;
+  var _iterator9 = _createForOfIteratorHelper(vizData),
+      _step9;
 
   try {
-    for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-      var line = _step10.value;
+    for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+      var day = _step9.value;
+      var week = helper.getWeekNumber(new Date(Date.parse(day.date)))[1];
 
-      var _iterator11 = _createForOfIteratorHelper(line.girouettes),
-          _step11;
+      for (var i = 0; i < day.lignes.length; i++) {
+        var line = day.lignes[i];
 
-      try {
-        for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
-          var direction = _step11.value;
-          var tripNClients = [];
+        for (var j = 0; j < line.girouettes.length; j++) {
+          var direction = line.girouettes[j];
+          var dayClients = 0;
 
-          var _iterator12 = _createForOfIteratorHelper(direction.voyages),
-              _step12;
+          var _iterator10 = _createForOfIteratorHelper(direction.voyages),
+              _step10;
 
           try {
-            for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
-              var trip = _step12.value;
-              var nClients = 0;
+            for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+              var trip = _step10.value;
+              var tripClients = 0;
 
-              var _iterator13 = _createForOfIteratorHelper(trip.arrets),
-                  _step13;
+              var _iterator11 = _createForOfIteratorHelper(trip.arrets),
+                  _step11;
 
               try {
-                for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
-                  var stop = _step13.value;
-                  nClients += stop.moyNClients;
+                for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
+                  var stop = _step11.value;
+                  tripClients += stop.nClients;
                 }
               } catch (err) {
-                _iterator13.e(err);
+                _iterator11.e(err);
               } finally {
-                _iterator13.f();
+                _iterator11.f();
               }
 
-              tripNClients.push(nClients);
+              dayClients += tripClients;
+              tripSets[i * day.lignes.length + j].push(tripClients);
             }
           } catch (err) {
-            _iterator12.e(err);
+            _iterator10.e(err);
           } finally {
-            _iterator12.f();
+            _iterator10.f();
           }
 
-          quantileSets.push(helper.getQuantiles(tripNClients));
+          daySets[i * day.lignes.length + j].push(dayClients);
+          weekClients[i * day.lignes.length + j] += dayClients;
         }
-      } catch (err) {
-        _iterator11.e(err);
-      } finally {
-        _iterator11.f();
+      }
+
+      if (lastWeek !== week) {
+        for (var _i8 = 0; _i8 < weekClients.length; _i8++) {
+          weekSets[_i8].push(weekClients[_i8]);
+        }
+
+        weekClients = [0, 0, 0, 0];
+        lastWeek = week;
       }
     }
   } catch (err) {
-    _iterator10.e(err);
+    _iterator9.e(err);
   } finally {
-    _iterator10.f();
+    _iterator9.f();
   }
 
-  return quantileSets;
+  var quantileTripSets = [];
+
+  for (var _i5 = 0, _tripSets = tripSets; _i5 < _tripSets.length; _i5++) {
+    var tripSet = _tripSets[_i5];
+    quantileTripSets.push(helper.getQuantiles(tripSet));
+  }
+
+  var quantileDaySets = [];
+
+  for (var _i6 = 0, _daySets = daySets; _i6 < _daySets.length; _i6++) {
+    var daySet = _daySets[_i6];
+    quantileDaySets.push(helper.getQuantiles(daySet));
+  }
+
+  var quantileWeekSets = [];
+
+  for (var _i7 = 0, _weekSets = weekSets; _i7 < _weekSets.length; _i7++) {
+    var weekSet = _weekSets[_i7];
+    quantileWeekSets.push(helper.getQuantiles(weekSet));
+  }
+
+  return [quantileTripSets, quantileDaySets, quantileWeekSets];
 }
 },{"./helper.js":"scripts/helper.js"}],"index.js":[function(require,module,exports) {
 'use strict';
@@ -1011,12 +1143,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
   };
   helper.setCanvasSize(svgSize.width, svgSize.height);
   helper.generateMapG(svgSize.width, svgSize.height);
-  helper.generateMarkerG(svgSize.width, svgSize.height);
-  helper.appendGraphLabels(d3.select('.main-svg'));
-  helper.initPanelDiv(); // Solution temporaire, éventuellement l'utilisateur peut choisir la période qui l'intéresse, s'il veut inclure les week-end et les fériés.
+  helper.generateMarkerG(svgSize.width, svgSize.height); // Solution temporaire, éventuellement l'utilisateur peut choisir la période qui l'intéresse, s'il veut inclure les week-end et les fériés.
 
-  var startDate = new Date('2021-09-01');
-  var endDate = new Date('2021-12-01');
+  var startDate = new Date('2021/09/01');
+  var endDate = new Date('2021/12/01');
   var typeJour = 'semaine';
   var ferie = false;
   var vizData = [];
@@ -1038,10 +1168,9 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
         d.sequence_arret = +d.sequence_arret;
         d.arret_Latitude = +d.arret_Latitude;
         d.arret_Longitude = +d.arret_Longitude;
-      }); //console.log(csvData)
-
+      });
       preprocess.addDayType(csvData);
-      preprocess.aggregateData(csvData, vizData, startDate, endDate, typeJour, ferie);
+      preprocess.aggregateDataForViz3(csvData, vizData, startDate, endDate, typeJour, ferie);
       groupedQuantile.generateViz3(vizData);
     });
   }
@@ -1074,7 +1203,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49407" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51439" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
